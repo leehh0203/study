@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabs Fixture</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f6f1e8;
+      color: #241f1b;
+    }
+
+    .page {
+      width: min(100% - 32px, 720px);
+      margin: 48px auto;
+      padding: 24px;
+      border: 1px solid #dacfc2;
+      border-radius: 24px;
+      background: #fffdf8;
+    }
+
+    .tab-list {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      padding: 12px 16px;
+      border: 1px solid #d2c4b3;
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: #c86428;
+      border-color: #c86428;
+      color: #fff;
+    }
+
+    .panel {
+      display: none;
+      padding: 20px;
+      border: 1px solid #e2d8cd;
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .panel.active {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <h1>탭 예제</h1>
+    <div class="tab-list" role="tablist" aria-label="탭 예제">
+      <button 
+        id="tab-overview"
+        class="tab active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="panel-overview" 
+        data-target="panel-overview"
+      >
+        개요
+      </button>
+      <button 
+        id="tab-review"
+        class="tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-review" 
+        data-target="panel-review"
+      >
+        리뷰
+      </button>
+      <button 
+        id="tab-faq"
+        class="tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-faq" 
+        data-target="panel-faq"
+      >
+        FAQ
+      </button>
+    </div>
+
+    <section 
+      id="panel-overview" 
+      class="panel active"
+      role="tabpanel"
+      aria-labelledby="tab-overview"
+    >
+      <h2>개요</h2>
+      <p>상태 하나로 버튼과 패널이 같이 움직이는지 확인합니다.</p>
+    </section>
+    <section 
+      id="panel-review" 
+      class="panel"
+      role="tabpanel"
+      aria-labelledby="tab-review"
+    >
+      <h2>리뷰</h2>
+      <p>DOM class가 아니라 activeTabId가 진짜 상태여야 합니다.</p>
+    </section>
+    <section 
+      id="panel-faq" 
+      class="panel"
+      role="tabpanel"
+      aria-labelledby="tab-faq"
+    >
+      <h2>FAQ</h2>
+      <p>잘못된 코드와 리팩토링 코드를 번갈아 붙여 비교해보세요.</p>
+    </section>
+  </main>
+
+  <script>
+    class Tabs {
+      constructor(root) {
+        // 이 class가 관리할 탭 UI의 최상위 요소입니다.
+        this.root = root;
+
+        console.log(root);
+
+        //root 안에서만 탭과 패널을 찾습니다.
+        this.tabs = [...root.querySelectorAll('.tab')];
+        this.panels = [...root.querySelectorAll('.panel')];
+
+        //초기 상태도 class 내부에서 결정합니다.
+        this.activeTabId = this.getInitialTabId();
+
+        // 이벤트 연결 후, 현재 상태를 화면에 반영합니다.
+        this.bindEvents();
+        this.render();
+      }
+
+      //초기화 상태로 만들기
+      getInitialTabId() {
+        // HTML에 이미 active가 있으면 그 탭을 초기 상태로 사용합니다.
+        const activeTab = this.tabs.find((tab) => tab.classList.contains("active"));
+        const firstTab = this.tabs[0];
+
+        return activeTab?.dataset.target ?? firstTab?.dataset.target ?? "";
+        // “active → 없으면 first → 그것도 없으면 빈값”을 안전하게 반환하는 코드
+      }
+
+      hasPanel(tabId) {
+        // 없는 패널 id로 상태가 바뀌는 것을 막습니다.
+        return this.panels.some((panel) => panel.id === tabId);
+      }
+
+      setActiveTab(nextTabId) {
+        // 상태 변경은 이 메서드 한 곳에서 처리합니다.
+        if (!this.hasPanel(nextTabId)) return;
+
+        this.activeTabId = nextTabId;
+        this.render();
+      }
+
+      bindEvents() {
+        this.tabs.forEach((tab) => {
+          tab.addEventListener("click", () => {
+            //이벤트 핸들러는 상태 변경 메서드만 호출합니다.
+            this.setActiveTab(tab.dataset.target);
+          });
+        });
+      }
+
+      render() {
+        this.tabs.forEach((tab) => {
+          const isActive = tab.dataset.target === this.activeTabId;
+
+          //버튼 UI는 activeTabId에서 파생됩니다.
+          tab.classList.toggle("active", isActive);
+        });
+
+        this.panels.forEach((panel) => {
+          const isActive = panel.id === this.activeTabId;
+
+          // 패널 UI도 같은 activeTabId에서 파생됩니다.
+          panel.classList.toggle("active", isActive);
+        });
+      }
+    }
+
+    // new Tabs(document.querySelector(".page"));
+
+    document.querySelectorAll(".page").forEach((page) => {
+      new Tabs(page);
+      //.page마다 각각 Tabs 인스턴스를 생성
+    });
+
+  </script>
+</body>
+
+</html>
