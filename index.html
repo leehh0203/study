@@ -1,11 +1,263 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ko">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabs Fixture</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f6f1e8;
+      color: #241f1b;
+    }
+
+    .page {
+      width: min(100% - 32px, 720px);
+      margin: 48px auto;
+      padding: 24px;
+      border: 1px solid #dacfc2;
+      border-radius: 24px;
+      background: #fffdf8;
+    }
+
+    .tab-list {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      padding: 12px 16px;
+      border: 1px solid #d2c4b3;
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: #c86428;
+      border-color: #c86428;
+      color: #fff;
+    }
+
+    .panel {
+      display: none;
+      padding: 20px;
+      border: 1px solid #e2d8cd;
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .panel.active {
+      display: block;
+    }
+  </style>
 </head>
+
 <body>
+  <main class="page">
+    <h1>탭 예제</h1>
+    <div class="tab-list" role="tablist" aria-label="탭 예제">
+      <button 
+        id="tab-overview"
+        class="tab active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="panel-overview" 
+        data-target="panel-overview"
+      >
+        개요
+      </button>
+      <button 
+        id="tab-review"
+        class="tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-review" 
+        data-target="panel-review"
+      >
+        리뷰
+      </button>
+      <button 
+        id="tab-faq"
+        class="tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-faq" 
+        data-target="panel-faq"
+      >
+        FAQ
+      </button>
+    </div>
+
+    <section 
+      id="panel-overview" 
+      class="panel active"
+      role="tabpanel"
+      aria-labelledby="tab-overview"
+    >
+      <h2>개요</h2>
+      <p>상태 하나로 버튼과 패널이 같이 움직이는지 확인합니다.</p>
+    </section>
+    <section 
+      id="panel-review" 
+      class="panel"
+      role="tabpanel"
+      aria-labelledby="tab-review"
+    >
+      <h2>리뷰</h2>
+      <p>DOM class가 아니라 activeTabId가 진짜 상태여야 합니다.</p>
+    </section>
+    <section 
+      id="panel-faq" 
+      class="panel"
+      role="tabpanel"
+      aria-labelledby="tab-faq"
+    >
+      <h2>FAQ</h2>
+      <p>잘못된 코드와 리팩토링 코드를 번갈아 붙여 비교해보세요.</p>
+    </section>
+  </main>
+
+  <script>
+    const tabs = [...document.querySelectorAll('.tab')];
+    const panels = [...document.querySelectorAll('.panel')];
+
+    let activeTabId = "panel-overview";
+
+    //가드 치기
+    function hasPanel(tabId) {
+      //실제로 존재 하는 패널 id인지 확인
+      return panels.some((panel) => panel.id === tabId);
+      // panels 배열을 돌리면서 true 여부 확인
+    };
+
+    // 그려 주는 함수
+    function render() {
+      // 버튼은 data-target이 현재 상태와 같을 때 활성화
+      tabs.forEach((tab) => {
+        const isActive = tab.dataset.target === activeTabId;
+        tab.classList.toggle("active", isActive);
+
+        //이해 필요
+        tab.setAttribute("aria-selected", String(isActive));
+        tab.tabIndex = isActive ? 0 : -1;
+      })
+      
+      // 패널은 id가 현재 상태와 같을 때 활성화
+      panels.forEach((panel) => {
+        const isActive = panel.id === activeTabId;
+
+        //선택되지 않은 패널은 화면과 보조기술 모두에서 숨김
+        panel.classList.toggle("active", isActive);
+        panel.hidden = !isActive;
+      });
+    }
+
+
+    //상태 변경 함수
+    function setActiveTab(nextTabId) {
+      // 없는 패널로는 상태를 바꾸지 않음
+      if (!hasPanel(nextTabId)) return;
+      // 없으면 끝내라
+
+      activeTabId = nextTabId;
+      render();
+    };
+
+    console.log(tab.index);
     
+
+
+    // 현재 활성화 되어 있는 인덱스로 포커싱
+    function focusTab(index) {
+      const nextTab = tabs[index];
+      
+      if (!nextTab) return;
+      
+      //방향키 이동은 선택이 아니라 focus 이동만 처리
+      nextTab.focus();
+    }
+
+    //순환 인덱스
+    function getNextIndex(currentIndex, direction) {
+      // 마지막 탭 다음은 첫 탭, 첫 탭 이전은 마지막 탭으로 순환 시킴
+      return (currentIndex + direction + tabs.length) % tabs.length;
+
+      // currentIndex = 현재 인덱스
+      // direction = 방향
+
+      // 1 + 1 = 2   // 오른쪽
+      // 1 - 1 = 0   // 왼쪽
+      
+    }
+
+    tabs.forEach((tab, index) => {
+      //클릭 이벤트
+      tab.addEventListener('click', () => {
+        // 클릭한 탭이 가리키는 패널 id를 상태로 저장
+        // activeTabId = tab.dataset.target;
+        // render();
+
+        // 클릭 이벤트도 직접 DOM을 고치지 않고 상태 변경 함수만 호출
+        setActiveTab(tab.dataset.target)
+      });
+
+      //키보드 이벤트
+      tab.addEventListener("keydown", (event) => {
+
+        //오른쪽으로 이동
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          focusTab(getNextIndex(index, 1));
+          return;
+        }
+
+        //왼쪽으로 이동
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          focusTab(getNextIndex(index, -1));
+          return;
+        }
+
+        //맨 처음 버튼으로 이동
+        if (event.key === "Home") {
+          event.preventDefault();
+          focusTab(0);
+          return;
+        }
+
+        //맨 마지막 버튼으로 이동
+        if (event.key === "End") {
+          event.preventDefault();
+          focusTab(tabs.length - 1);
+          //마지막 탭으로 이동
+          return;
+        }
+
+        //엔터,스페이스바 눌렀을때 선택된 것 반영
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          // manual activation : Enter 또는 Space를 눌렀을 때만 선택합니다.
+          setActiveTab(tab.dataset.target)
+          // 초기 상태를 class, ARIA, hidden에 반영
+
+          // event.key === " " 스페이스바
+        }
+      })
+    });
+
+    render();
+
+
+
+  </script>
 </body>
+
 </html>
