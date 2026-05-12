@@ -116,7 +116,7 @@
       const accordionButton = [...document.querySelectorAll('.accordion-button')];
       const accordionPanel = [...document.querySelectorAll('.accordion-panel')];
 
-      let openId = ""
+      let openItemId = ""
 
       // 가드 함수
       function hasPanel(buttonId) {
@@ -124,24 +124,26 @@
       };
 
       //상태 변경 함수
-      function setOpenItem(nextOpenId) {
-        if (!hasPanel(nextOpenId)) return;
+      function setOpenItem(nextopenItemId) {
+        if (!hasPanel(nextopenItemId)) return;
 
-        openId = nextOpenId;
+        openItemId = nextopenItemId;
         render();
       }
 
-      //화면 반영 함수
+      //화면 반영 함수String
       function render() {
         accordionButton.forEach((button) => {
-          const isOpen = button.dataset.target === openId;
+          const isOpen = button.dataset.target === openItemId;
 
           button.classList.toggle("open", isOpen);
           button.setAttribute("aria-expanded", String(isOpen));
+
+          button.tabIndex = isOpen ? 0 : -1;
         })
         
         accordionPanel.forEach((panel) => {
-          const isOpen = panel.id === openId;
+          const isOpen = panel.id === openItemId;
           
           panel.classList.toggle("open", isOpen);
           panel.hidden = !isOpen;
@@ -149,13 +151,10 @@
         });
       }
 
-
-
-
-
       // 포커스이동
       function focusButton(index) {
         const nextButton = accordionButton[index];
+
         if (!nextButton) return;
 
         nextButton.focus();
@@ -163,53 +162,50 @@
 
       // 순환인덱스
       function getNextIndex(currentIndex, direction) {
+        // currentIndex = 현재 인덱스
+        // direction 방향
         return (currentIndex + direction + accordionButton.length) % accordionButton.length;
       }
-    
       
-      //이동
+      //key 이동
       accordionButton.forEach((button, index) => {
-        button.addEventListener("keydown", (event) => {
+        button.addEventListener("keydown", (e) => {
 
           //오른쪽으로 이동
-          if (event.key === "ArrowRight") {
-            event.preventDefault();
+          if (e.key === "ArrowRight") {
+            e.preventDefault();
             focusButton(getNextIndex(index, 1));
             return;
+            
           }
 
           //왼쪽으로 이동
-          if (event.key === "ArrowLeft") {
-            event.preventDefault();
+          if (e.key === "ArrowLeft") {
+            e.preventDefault();
             focusButton(getNextIndex(index, -1));
             return;
           }
 
-          //맨 처음 버튼으로 이동
-          if (event.key === "Home") {
-            event.preventDefault();
+          //맨 처음 인덱스로 이동
+          if (e.key === "Home") {
+            e.preventDefault();
             focusButton(0);
             return;
           }
 
-          //맨 마지막 버튼으로 이동
-          if (event.key === "End") {
-            event.preventDefault();
-            focusButton(tabs.length - 1);
-            //인덱스가 0부터 시작함으로
-            //마지막 탭으로 이동
+          //맨 마지막 인덱스로 이동
+          if (e.key === "End") {
+            e.preventDefault();
+            focusButton(accordionButton.length - 1);
             return;
           }
 
-          //엔터,스페이스바 눌렀을때 선택된 것 반영
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            // manual activation : Enter 또는 Space를 눌렀을 때만 선택합니다.
-            setActiveTab(tab.dataset.target)
-            // 초기 상태를 class, ARIA, hidden에 반영
-
-            // event.key === " " 스페이스바
+          //엔터,스페이스바 눌렀을때 open
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpenItem(button.dataset.target)
           }
+
         })
       });
 
