@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Accordion Fixture</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: #f2f4f0;
+        color: #1d241d;
+      }
+      .page {
+        width: min(100% - 32px, 720px);
+        margin: 48px auto;
+        padding: 24px;
+        border: 1px solid #d7ddd3;
+        border-radius: 24px;
+        background: #fbfdf9;
+      }
+      .accordion-item + .accordion-item {
+        margin-top: 12px;
+      }
+      .accordion-item {
+        border: 1px solid #d8e0d2;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #fff;
+      }
+      .accordion-button {
+        width: 100%;
+        padding: 16px 18px;
+        border: 0;
+        background: #eef4e7;
+        text-align: left;
+        font: inherit;
+        cursor: pointer;
+      }
+      .accordion-button.open {
+        background: #dcebcf;
+      }
+      .accordion-panel {
+        display: none;
+        padding: 18px;
+      }
+      .accordion-panel.open {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <h1>아코디언 예제</h1>
+      <article class="accordion-item">
+        <button 
+          id="accordion-button-a1"
+          class="accordion-button"
+          aria-expanded="false"
+          aria-controls="accordion-panel-a1"
+          data-target="accordion-panel-a1"
+        >
+          상태는 무엇인가?
+        </button>
+        <div 
+          id="accordion-panel-a1" 
+          class="accordion-panel" 
+          role="region" 
+          aria-labelledby="accordion-button-a1"
+        >
+          열림 여부를 DOM class가 아니라 상태로 봐야 합니다.
+        </div>
+      </article>
+      <article class="accordion-item">
+        <button 
+          id="accordion-button-a2"
+          class="accordion-button"
+          aria-expanded="false"
+          aria-controls="accordion-panel-a2"
+          data-target="accordion-panel-a2"
+        >
+          single과 multi의 차이
+        </button>
+        <div 
+          id="accordion-panel-a2" 
+          class="accordion-panel" 
+          role="region" 
+          aria-labelledby="accordion-button-a2"
+        >
+          openId와 openIds는 구조가 다릅니다.
+        </div>
+      </article>
+      <article class="accordion-item">
+        <button 
+          id="accordion-button-a3"
+          class="accordion-button"
+          aria-expanded="false"
+          aria-controls="accordion-panel-a3"
+          data-target="accordion-panel-a3"
+        >
+          리팩토링 포인트
+        </button>
+        <div 
+          id="accordion-panel-a3" 
+          class="accordion-panel" 
+          role="region" 
+          aria-labelledby="accordion-button-a3"
+        >
+          DOM을 읽어 판단하지 말고 상태를 먼저 정의합니다.
+        </div>
+      </article>
+    </main>
+
+    <script>
+      const accordionButton = [...document.querySelectorAll('.accordion-button')];
+      const accordionPanel = [...document.querySelectorAll('.accordion-panel')];
+
+      let openId = ""
+
+      // 가드 함수
+      function hasPanel(buttonId) {
+        return accordionPanel.some((panel) => panel.id === buttonId);
+      };
+
+      //상태 변경 함수
+      function setOpenItem(nextOpenId) {
+        if (!hasPanel(nextOpenId)) return;
+
+        openId = nextOpenId;
+        render();
+      }
+
+      //화면 반영 함수
+      function render() {
+        accordionButton.forEach((button) => {
+          const isOpen = button.dataset.target === openId;
+
+          button.classList.toggle("open", isOpen);
+          button.setAttribute("aria-expanded", String(isOpen));
+        })
+        
+        accordionPanel.forEach((panel) => {
+          const isOpen = panel.id === openId;
+          
+          panel.classList.toggle("open", isOpen);
+          panel.hidden = !isOpen;
+          
+        });
+      }
+
+
+
+
+
+      // 포커스이동
+      function focusButton(index) {
+        const nextButton = accordionButton[index];
+        if (!nextButton) return;
+
+        nextButton.focus();
+      }
+
+      // 순환인덱스
+      function getNextIndex(currentIndex, direction) {
+        return (currentIndex + direction + accordionButton.length) % accordionButton.length;
+      }
+    
+      
+      //이동
+      accordionButton.forEach((button, index) => {
+        button.addEventListener("keydown", (event) => {
+
+          //오른쪽으로 이동
+          if (event.key === "ArrowRight") {
+            event.preventDefault();
+            focusButton(getNextIndex(index, 1));
+            return;
+          }
+
+          //왼쪽으로 이동
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            focusButton(getNextIndex(index, -1));
+            return;
+          }
+
+          //맨 처음 버튼으로 이동
+          if (event.key === "Home") {
+            event.preventDefault();
+            focusButton(0);
+            return;
+          }
+
+          //맨 마지막 버튼으로 이동
+          if (event.key === "End") {
+            event.preventDefault();
+            focusButton(tabs.length - 1);
+            //인덱스가 0부터 시작함으로
+            //마지막 탭으로 이동
+            return;
+          }
+
+          //엔터,스페이스바 눌렀을때 선택된 것 반영
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            // manual activation : Enter 또는 Space를 눌렀을 때만 선택합니다.
+            setActiveTab(tab.dataset.target)
+            // 초기 상태를 class, ARIA, hidden에 반영
+
+            // event.key === " " 스페이스바
+          }
+        })
+      });
+
+
+      //실행 함수
+      accordionButton.forEach(button => {
+        button.addEventListener('click', () => {
+          setOpenItem(button.dataset.target);
+        });
+      });
+
+    </script>
+  </body>
+</html>
