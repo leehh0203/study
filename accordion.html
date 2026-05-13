@@ -124,14 +124,17 @@
       };
 
       //상태 변경 함수
-      function setOpenItem(nextopenItemId) {
-        if (!hasPanel(nextopenItemId)) return;
+      function setOpenItem(nextOpenItemId) {
+        if (!hasPanel(nextOpenItemId)) return;
 
-        openItemId = nextopenItemId;
+        // 열린 상태에서 누르면 상태 초기화
+        // 닫힌 상태에서 누르면 상태 업데이트
+        openItemId === nextOpenItemId ? openItemId = "" : openItemId = nextOpenItemId;
+        
         render();
       }
 
-      //화면 반영 함수String
+      //화면 반영 함수
       function render() {
         accordionButton.forEach((button) => {
           const isOpen = button.dataset.target === openItemId;
@@ -172,15 +175,14 @@
         button.addEventListener("keydown", (e) => {
 
           //오른쪽으로 이동
-          if (e.key === "ArrowRight") {
+          if (e.key === "ArrowDown") {
             e.preventDefault();
             focusButton(getNextIndex(index, 1));
             return;
-            
           }
 
           //왼쪽으로 이동
-          if (e.key === "ArrowLeft") {
+          if (e.key === "ArrowUp") {
             e.preventDefault();
             focusButton(getNextIndex(index, -1));
             return;
@@ -208,7 +210,6 @@
 
         })
       });
-
 
       //실행 함수
       accordionButton.forEach(button => {
