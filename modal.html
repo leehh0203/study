@@ -66,33 +66,62 @@
 
     <div class="modal">
       <div class="modal-overlay"></div>
-      <section class="modal-content" aria-label="예시 모달">
-        <h2>모달</h2>
-        <p>닫기, ESC, 오버레이 클릭을 한 흐름으로 묶어보세요.</p>
+      <section 
+        class="modal-content" 
+        role="dialog"
+        aria-modal="true" 
+        aria-labelledby="modal-title" 
+        aria-describedby="modal-desc"
+      >
+        <h2 id="modal-title">모달</h2>
+        <p id="modal-desc">닫기, ESC, 오버레이 클릭을 한 흐름으로 묶어보세요.</p>
         <button class="close-modal">닫기</button>
       </section>
     </div>
 
     <script>
-      const modal = document.querySelector('.modal');
       const openButton = document.querySelector('.open-modal');
-      const closeButton = document.querySelector('.close-modal');
-      const overlay = document.querySelector('.modal-overlay');
+      const modal = document.querySelector('.modal');
+      const closeButton = modal.querySelector('.close-modal');
+      const overlay = modal.querySelector('.modal-overlay');
 
-      openButton?.addEventListener('click', () => {
-        document.querySelector('.modal').style.display = 'block';
-        document.body.style.overflow = 'hidden';
+      let isOpen = false;
+
+
+      // render
+      function render(){
+        modal.classList.toggle('open', isOpen);
+      };
+
+      // state
+      function setOpen(nextOpen) {
+
+        if (isOpen === nextOpen) return;
+
+        isOpen = nextOpen;
+        render();
+      };
+    
+      // event
+      openButton.addEventListener('click', () => {
+        setOpen(true);
       });
 
-      closeButton?.addEventListener('click', () => {
-        document.querySelector('.modal').style.display = 'none';
-        document.body.style.overflow = 'auto';
+      closeButton.addEventListener('click', () => {
+        setOpen(false);
       });
 
-      overlay?.addEventListener('click', () => {
-        document.querySelector('.modal').style.display = 'none';
-        document.body.style.overflow = 'auto';
+      overlay.addEventListener('click', () => {
+        setOpen(false);
       });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setOpen(false);
+        }
+      });
+
     </script>
   </body>
 </html>
